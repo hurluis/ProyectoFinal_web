@@ -24,11 +24,6 @@ desktop.ini
 *.swp
 *.swo
 
-# Next.js (nationshub)
-nationshub/.next/
-nationshub/out/
-nationshub/.env*
-
 # Builds
 dist/
 build/
