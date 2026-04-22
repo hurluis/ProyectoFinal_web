@@ -95,35 +95,3 @@ db/
 | `upsert_cart_item(session, product, qty)` | Añade o actualiza un ítem en el carrito           |
 | `get_cart(session)`                       | Carrito con subtotal, envío y total               |
 | `create_order(session, email, name, …)`   | Crea la orden desde el carrito y lo vacía         |
-
-## Consultas útiles
-
-```sql
--- Todos los productos con precio
-SELECT p.id, p.name, c.name AS categoria,
-       to_char(p.price,'FM999G999G999') || ' COP' AS precio,
-       p.stock
-FROM products p
-JOIN categories c ON c.id = p.category_id
-ORDER BY p.price DESC;
-
--- Catálogo por categoría
-SELECT * FROM get_products('auriculares');
-
--- Detalle completo de un producto
-SELECT get_product_detail('halo-over-ear');
-
--- Órdenes registradas
-SELECT order_ref, name, total, status, created_at FROM orders;
-```
-
-## Catálogo de productos
-
-| ID  | Nombre          | Categoría   | Precio COP   | Stock |
-|-----|-----------------|-------------|-------------|-------|
-| p01 | Halo Over-Ear   | Auriculares | $1.899.000  | 14    |
-| p02 | Orbit 360       | Altavoces   | $1.299.000  | 8     |
-| p03 | Echo In-Ear     | Auriculares | $749.000    | 22    |
-| p04 | Prisma Monitor  | Audio Hi-Fi | $3.499.000  | 4     |
-| p05 | Lámina 75       | Escritorio  | $1.199.000  | 9     |
-| p06 | Faro            | Escritorio  | $899.000    | 6     |
