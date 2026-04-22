@@ -1,46 +1,129 @@
-## NationsHub
+# Luis&SantiCO
 
-Una mini aplicación web desarrollada con **Next.js** y **TailwindCSS** que permite explorar información de todos los países del mundo: banderas, capitales y monedas.
+Tienda de audio premium fabricada en Colombia. E-commerce completo con catálogo, carrito, checkout y base de datos PostgreSQL.
 
-## Descripción
-
-NationsHub es una aplicación web que consume la API pública de países [RestCountries](https://restcountries.com/) para mostrar información detallada de cada nación del mundo de forma visual e interactiva.
-
-## ¿Qué problema resuelve?
-
-Centraliza la información geográfica y económica de los países del mundo en un solo lugar, permitiendo buscar y filtrar países de forma rápida y sencilla, sin necesidad de buscar en múltiples fuentes.
-
-##  Integrantes del grupo
+## Integrantes
 
 | Nombre               |
 |----------------------|
-| David Vélez          |
-| Luiz Miguel Giraldo  |
-| Santiago González    |
+| Luis Miguel Giraldo  |
 
-## Tecnologías utilizadas
+## Tecnologías
 
-- [Next.js](https://nextjs.org/) — Framework de React
-- [TailwindCSS](https://tailwindcss.com/) — Estilos y diseño
-- [RestCountries API](https://restcountries.com/v3.1/all?fields=name,capital,currencies,flags,latlng) — Fuente de datos
+| Capa          | Tecnología                                             |
+|---------------|--------------------------------------------------------|
+| Frontend      | React 18 (CDN) · Babel Standalone · CSS custom properties |
+| Tipografía    | Fraunces · Inter Tight · JetBrains Mono (Google Fonts) |
+| Servidor web  | nginx:alpine (Docker)                                  |
+| Base de datos | PostgreSQL 15 (Docker)                                 |
+| Cliente DB    | pg (node-postgres)                                     |
+| Contenedores  | Docker · Docker Compose                                |
 
-## Componentes
+## Levantar la app completa
 
-- `Header` — Barra de navegación visible en todas las páginas
-- `Footer` — Pie de página visible en todas las páginas
-
-## API utilizada
-
-**RestCountries v3.1**
-```
-https://restcountries.com/v3.1/all?fields=name,capital,currencies,flags,latlng
+```bash
+docker compose up -d
 ```
 
-Campos usados:
-- `name.common` — Nombre del país
-- `flags.svg` — Bandera
-- `capital` — Capital
-- `currencies` — Moneda
-- `latlng` — Ubicación geográfica
+Eso es todo. El comando levanta dos contenedores:
 
+| Contenedor       | Descripción                   | URL / Puerto          |
+|------------------|-------------------------------|----------------------|
+| `luisantico_web` | nginx sirve la tienda         | http://localhost     |
+| `luisantico_db`  | PostgreSQL con datos iniciales | localhost:5432       |
 
+Para cargar el esquema y los productos en la base de datos (primera vez):
+
+```bash
+cd db && npm install && node setup.js
+```
+
+Para parar todo:
+
+```bash
+docker compose down
+```
+
+## Estructura del proyecto
+
+```
+Luis&SantiCO.html       ← Entrada principal de la SPA
+nginx.conf              ← Configuración del servidor web
+docker-compose.yml      ← Levanta web + db con un solo comando
+src/
+  lsc-data.js           ← Catálogo de productos
+  lsc/
+    App.jsx             ← Router + estado del carrito
+    Nav.jsx             ← Barra de navegación numerada
+    Home.jsx            ← Hero parallax · Manifiesto · Testimonios
+    Catalog.jsx         ← Catálogo con filtros y búsqueda
+    Product.jsx         ← Página de producto (galería + colores)
+    Cart.jsx            ← Drawer lateral del carrito
+    Checkout.jsx        ← Formulario de compra 3 pasos
+    Footer.jsx          ← Mega-logo · Newsletter · Links
+    ProductCard.jsx     ← Tarjeta con tilt 3D magnético
+    Primitives.jsx      ← LSCReveal · LSCMarquee · LSCButton
+db/
+  schema.sql            ← Tablas + 5 stored procedures
+  seed.sql              ← Datos iniciales
+  setup.js              ← Script de instalación y validación
+  query.js              ← Consultas de ejemplo
+  .env                  ← Credenciales de conexión
+```
+
+## Esquema de base de datos
+
+### Tablas
+
+| Tabla              | Descripción                                              |
+|--------------------|----------------------------------------------------------|
+| `categories`       | 4 categorías: Auriculares, Altavoces, Escritorio, Hi-Fi  |
+| `products`         | 6 productos con precio COP, stock, descripciones         |
+| `product_images`   | 4 imágenes por producto (24 en total)                    |
+| `product_colors`   | Variantes de color por producto (13 en total)            |
+| `product_features` | Características numeradas por producto (30 en total)     |
+| `cart_items`       | Ítems de carrito por sesión                              |
+| `orders`           | Órdenes con referencia única `LS-XXXXXX`                 |
+| `order_items`      | Líneas de cada orden                                     |
+
+### Funciones
+
+| Función                                   | Descripción                                      |
+|-------------------------------------------|--------------------------------------------------|
+| `get_products(category_id?)`              | Catálogo completo o filtrado por categoría        |
+| `get_product_detail(slug)`                | JSONB con imágenes, colores y características     |
+| `upsert_cart_item(session, product, qty)` | Añade o actualiza un ítem en el carrito           |
+| `get_cart(session)`                       | Carrito con subtotal, envío y total               |
+| `create_order(session, email, name, …)`   | Crea la orden desde el carrito y lo vacía         |
+
+## Consultas útiles
+
+```sql
+-- Todos los productos con precio
+SELECT p.id, p.name, c.name AS categoria,
+       to_char(p.price,'FM999G999G999') || ' COP' AS precio,
+       p.stock
+FROM products p
+JOIN categories c ON c.id = p.category_id
+ORDER BY p.price DESC;
+
+-- Catálogo por categoría
+SELECT * FROM get_products('auriculares');
+
+-- Detalle completo de un producto
+SELECT get_product_detail('halo-over-ear');
+
+-- Órdenes registradas
+SELECT order_ref, name, total, status, created_at FROM orders;
+```
+
+## Catálogo de productos
+
+| ID  | Nombre          | Categoría   | Precio COP   | Stock |
+|-----|-----------------|-------------|-------------|-------|
+| p01 | Halo Over-Ear   | Auriculares | $1.899.000  | 14    |
+| p02 | Orbit 360       | Altavoces   | $1.299.000  | 8     |
+| p03 | Echo In-Ear     | Auriculares | $749.000    | 22    |
+| p04 | Prisma Monitor  | Audio Hi-Fi | $3.499.000  | 4     |
+| p05 | Lámina 75       | Escritorio  | $1.199.000  | 9     |
+| p06 | Faro            | Escritorio  | $899.000    | 6     |
