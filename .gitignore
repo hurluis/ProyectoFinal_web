@@ -1,0 +1,34 @@
+# Dependencias
+node_modules/
+db/node_modules/
+
+# Variables de entorno
+.env
+.env.local
+.env.*.local
+
+# Docker volumes (datos persistentes)
+pgdata/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editores
+.idea/
+*.swp
+*.swo
+
+# Next.js (nationshub)
+nationshub/.next/
+nationshub/out/
+nationshub/.env*
+
+# Builds
+dist/
+build/
